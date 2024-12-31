@@ -19,14 +19,18 @@ jobs:
     env:
       CMAKE_OPTIONS: -DDEV_MODE=ON
     steps:
-      - name: Get pushed code
-        uses: actions/checkout@v3
-
-      # - name: Set up GCC ${{ matrix.gcc }}
+      - name: Set up GCC ${{ matrix.gcc }}
+        # we need the apt update because old packages won't load
+        run: |
+          sudo apt update
+          sudo apt install gcc-${{ matrix.gcc }}
       #   uses: egor-tensin/setup-gcc@v1
       #   with:
       #     version: ${{ matrix.gcc }}
       #     platform: x64
+
+      - name: Get pushed code
+        uses: actions/checkout@v3
 
       - uses: lukka/get-cmake@latest
 
