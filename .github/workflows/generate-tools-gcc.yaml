@@ -1,0 +1,41 @@
+name: "Build tools with gcc"
+on:
+  pull_request:
+    paths-ignore:
+      - 'spectool/**'
+
+jobs:
+  build_tools_win32:
+    name: Build all tools with gcc ${{ matrix.gcc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        gcc: [4.8, 8]
+        include:
+          - os: ubuntu-latest
+            triplet: x64-linux
+    env:
+      CMAKE_OPTIONS: -DDEV_MODE=ON
+    steps:
+      - name: Get pushed code
+        uses: actions/checkout@v3
+
+      - name: Set up GCC ${{ matrix.gcc }}
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: ${{ matrix.gcc }}
+          platform: x64
+
+      - uses: lukka/get-cmake@latest
+
+      - name: Configure CMake
+        run: CC=gcc-${{ matrix.gcc }} cmake -S . -B _build ${{ env.CMAKE_OPTIONS }}
+
+      - name: Build with CMake
+        run: cmake --build _build --config Debug --parallel
+
+      - name: Test installation
+        run: |
+          cmake --install _build --config Debug --prefix _built
