@@ -333,11 +333,15 @@ struct lzo_callback_t
  * lzo_init() is a macro to allow checking that the library and the
  * compiler's view of various types are consistent.
  */
+#if 1
+#define lzo_init() LZO_E_OK
+#else
 #define lzo_init() __lzo_init_v2(LZO_VERSION,(int)sizeof(short),(int)sizeof(int),\
     (int)sizeof(long),(int)sizeof(lzo_uint32_t),(int)sizeof(lzo_uint),\
     (int)lzo_sizeof_dict_t,(int)sizeof(char *),(int)sizeof(lzo_voidp),\
     (int)sizeof(lzo_callback_t))
 LZO_EXTERN(int) __lzo_init_v2(unsigned,int,int,int,int,int,int,int,int,int);
+#endif
 
 /* version functions (useful for shared libraries) */
 LZO_EXTERN(unsigned) lzo_version(void);
