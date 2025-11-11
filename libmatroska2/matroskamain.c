@@ -225,7 +225,7 @@ err_t CompressFrameZLib(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutB
 #endif // CONFIG_EBML_WRITING
 #endif // CONFIG_ZLIB
 
-#ifdef CONFIG_LZO1X
+#if 0 // defined(CONFIG_LZO1X)
 #if defined(CONFIG_EBML_WRITING)
 err_t CompressFrameLZO1x(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize)
 {
@@ -1642,7 +1642,7 @@ static filepos_t GetBlockFrameSize(const matroska_block *Element, size_t Frame, 
         if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_ZLIB && CompressFrameZLib(Data,ARRAYBEGIN(Element->SizeList,int32_t)[Frame],NULL,&OutSize)!=ERR_NONE)
             return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
 #endif
-#if defined(CONFIG_LZO1X)
+#if 0 // defined(CONFIG_LZO1X)
         if (CompAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X && CompressFrameLZO1x(Data,ARRAYBEGIN(Element->SizeList,int32_t)[Frame],NULL,&OutSize)!=ERR_NONE)
             return ARRAYBEGIN(Element->SizeList,int32_t)[Frame]; // we can't tell the final size without decoding the data
 #endif
@@ -1924,7 +1924,7 @@ static err_t RenderBlockData(matroska_block *Element, struct stream *Output, boo
                 }
             }
 #endif
-#if defined(CONFIG_LZO1X)
+#if 0 // defined(CONFIG_LZO1X)
             if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X)
             {
                 uint8_t *OutBuf;

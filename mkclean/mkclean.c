@@ -1633,8 +1633,10 @@ int main(int argc, const char *argv[])
 #endif
             if (tcsisame_ascii(Path,T("0")))
                 CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
+#if 0 // defined(CONFIG_LZO1X)
             else if (tcsisame_ascii(Path,T("2")))
                 CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_LZO1X;
+#endif
             else
             {
                 TextPrintf(StdErr,T("Unsupported compression algorithm %s (0: zlib, 2: lzo)\r\n"),Path);
@@ -2840,7 +2842,7 @@ int main(int argc, const char *argv[])
                         uint8_t *Compressed = malloc(CompressedSize);
                         uint8_t *NewCompressed = Compressed;
                         int comp_err;
-#if defined(CONFIG_LZO1X)
+#if 0 // defined(CONFIG_LZO1X)
                         if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X)
                         {
                             comp_err = CompressFrameLZO1x(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &NewCompressed, &CompressedSize);
@@ -2866,10 +2868,12 @@ int main(int argc, const char *argv[])
                     if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, compress_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_ZLIB))
                         ClustersNeedRead = 1;
                     break;
+#if 0 // defined(CONFIG_LZO1X)
                 case MATROSKA_TRACK_ENCODING_COMP_LZO1X:
                     if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, compress_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_LZO1X))
                         ClustersNeedRead = 1;
                     break;
+#endif
                 case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
                     if (!HeaderData || MATROSKA_TrackSetCompressionHeader((matroska_trackentry*)RLevel1, ARRAYBEGIN(*HeaderData,uint8_t), ARRAYCOUNT(*HeaderData,uint8_t), DstProfile))
                         ClustersNeedRead = 1;
