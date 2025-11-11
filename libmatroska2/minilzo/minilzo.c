@@ -587,6 +587,14 @@ protected int Decode(Stream *s, byteArray * buffer, int offset, int count)
             // errno = EOF;
             return -1;
         }
+        case 9:
+        {
+            /* first byte copy literal string */
+            var length = ReadByte(s) - 17;
+            // s->State = LargeCopy;
+            read = CopyFromRingBuffer(s, buffer, offset, count, 0, length, s->Instruction & 0x3);
+            break;
+        }
         default:
         {
             /*
@@ -642,6 +650,7 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
         return -1;
     }
 
+    // first byte
     if (Source.Instruction == 17) // bitstream version
     {
         if (src_len >= 5)
@@ -652,6 +661,17 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
                 return -1;
             }
         }
+    }
+    else if (Source.Instruction >= 18 && Source.Instruction <= 21)
+    {
+        Source.State = Source.Instruction - 17;
+        ReadByte(&Source); // skip byte
+    }
+    else if (Source.Instruction >= 22 && Source.Instruction <= 255)
+    {
+        // *dst_len = ReadByte(&Source) - 17; // skip byte
+        Source.Instruction = 9 << 4;
+        // Source.State = 4;
     }
 
 #define MaxWindowSize  ((1 << 14) + ((255 & 8) << 11) + (255 << 6) + (255 >> 2))
