@@ -108,6 +108,7 @@ static INLINE err_t CompressFrameZLib(const uint8_t * UNUSED_PARAM(Cursor), size
 }
 #endif // !CONFIG_ZLIB
 #endif
+MATROSKA_DLL err_t CompressFrameLZO1x(const uint8_t *Cursor, size_t CursorSize, uint8_t **OutBuf, size_t *OutSize);
 
 MATROSKA_DLL void MATROSKA_ClusterSort(matroska_cluster *Cluster); // not good with P frames!!!
 
