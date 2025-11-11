@@ -587,14 +587,6 @@ protected int Decode(Stream *s, byteArray * buffer, int offset, int count)
             // errno = EOF;
             return -1;
         }
-        case 9:
-        {
-            /* first byte copy literal string */
-            var length = ReadByte(s) - 17;
-            // s->State = LargeCopy;
-            read = CopyFromRingBuffer(s, buffer, offset, count, 0, length, s->Instruction & 0x3);
-            break;
-        }
         default:
         {
             /*
@@ -650,6 +642,17 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
         return -1;
     }
 
+#define MaxWindowSize  ((1 << 14) + ((255 & 8) << 11) + (255 << 6) + (255 >> 2))
+    Source.ringBuffer = RingBufferNew(MaxWindowSize);
+    if (Source.ringBuffer._buffer.data == NULL)
+        return -1;
+
+    byteArray out = {
+        .data = dst,
+        .Length = *dst_len,
+    };
+    int offset = 0;
+
     // first byte
     if (Source.Instruction == 17) // bitstream version
     {
@@ -658,6 +661,7 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
             version = ReadByte(&Source);
             if (version != 0) // unsupported
             {
+                RingBufferDelete(&Source.ringBuffer);
                 return -1;
             }
         }
@@ -669,22 +673,17 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
     }
     else if (Source.Instruction >= 22 && Source.Instruction <= 255)
     {
-        // *dst_len = ReadByte(&Source) - 17; // skip byte
-        Source.Instruction = 9 << 4;
-        // Source.State = 4;
+        /* first byte copy literal string */
+        var length = Source.Instruction - 17;
+        RingBuffer_Copy(&Source.ringBuffer, &out, offset, 0, length);
+        Source.OutputPosition += length;
+        *dst_len = length;
+        offset += length;
+        Source.State = 4;
     }
 
-#define MaxWindowSize  ((1 << 14) + ((255 & 8) << 11) + (255 << 6) + (255 >> 2))
-    Source.ringBuffer = RingBufferNew(MaxWindowSize);
-    if (Source.ringBuffer._buffer.data == NULL)
-        return -1;
-
-    byteArray out = {
-        .data = dst,
-        .Length = *dst_len,
-    };
-    int err = Read(&Source, &out, 0, src_len);
-    *dst_len = err;
+    int err = Read(&Source, &out, offset, src_len);
+    *dst_len += err;
     byteArrayDelete(&Source.DecodedBuffer);
     RingBufferDelete(&Source.ringBuffer);
     return 0;
