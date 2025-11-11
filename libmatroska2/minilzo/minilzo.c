@@ -631,21 +631,14 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
         .size = src_len,
         ._length = -1,
     };
-#define MaxWindowSize  ((1 << 14) + ((255 & 8) << 11) + (255 << 6) + (255 >> 2))
-    Source.ringBuffer = RingBufferNew(MaxWindowSize);
-    if (Source.ringBuffer._buffer.data == NULL)
-        return -1;
-
     Source.Instruction = ReadByte(&Source);
     if (Source.Instruction == -1)
     {
-        RingBufferDelete(&Source.ringBuffer);
         // errno = EOF;
         return -1;
     }
     if (Source.Instruction > 15 && Source.Instruction <= 17)
     {
-        RingBufferDelete(&Source.ringBuffer);
         return -1;
     }
 
@@ -656,11 +649,15 @@ int lzo1x_decompress_safe( const unsigned char* src, unsigned int  src_len,
             version = ReadByte(&Source);
             if (version != 0) // unsupported
             {
-                RingBufferDelete(&Source.ringBuffer);
                 return -1;
             }
         }
     }
+
+#define MaxWindowSize  ((1 << 14) + ((255 & 8) << 11) + (255 << 6) + (255 >> 2))
+    Source.ringBuffer = RingBufferNew(MaxWindowSize);
+    if (Source.ringBuffer._buffer.data == NULL)
+        return -1;
 
     byteArray out = {
         .data = dst,
