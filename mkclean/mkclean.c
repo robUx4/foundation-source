@@ -1633,9 +1633,11 @@ int main(int argc, const char *argv[])
 #endif
             if (tcsisame_ascii(Path,T("0")))
                 CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_ZLIB;
+            else if (tcsisame_ascii(Path,T("2")))
+                CompressionAlgo = MATROSKA_TRACK_ENCODING_COMP_LZO1X;
             else
             {
-                TextPrintf(StdErr,T("Unsupported compression algorithm %s (0: zlib)\r\n"),Path);
+                TextPrintf(StdErr,T("Unsupported compression algorithm %s (0: zlib, 2: lzo)\r\n"),Path);
                 Path[0] = 0;
                 Result = -8;
                 goto exit;
@@ -2838,6 +2840,13 @@ int main(int argc, const char *argv[])
                         uint8_t *Compressed = malloc(CompressedSize);
                         uint8_t *NewCompressed = Compressed;
                         int comp_err;
+#if defined(CONFIG_LZO1X)
+                        if (CompressionAlgo == MATROSKA_TRACK_ENCODING_COMP_LZO1X)
+                        {
+                            comp_err = CompressFrameLZO1x(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &NewCompressed, &CompressedSize);
+                        }
+                        else
+#endif
                         {
                             comp_err = CompressFrameZLib(EBML_BinaryGetData(CodecPrivate), origCompressedSize, &NewCompressed, &CompressedSize);
                         }
@@ -2854,8 +2863,11 @@ int main(int argc, const char *argv[])
                 {
                 case MATROSKA_TRACK_ENCODING_COMP_ZLIB:
                 case MATROSKA_TRACK_ENCODING_COMP_BZLIB: // transform bzlib into zlib
-                case MATROSKA_TRACK_ENCODING_COMP_LZO1X: // transform lzo1x into zlib
                     if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, compress_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_ZLIB))
+                        ClustersNeedRead = 1;
+                    break;
+                case MATROSKA_TRACK_ENCODING_COMP_LZO1X:
+                    if (MATROSKA_TrackSetCompressionAlgo((matroska_trackentry*)RLevel1, compress_scope,DstProfile, MATROSKA_TRACK_ENCODING_COMP_LZO1X))
                         ClustersNeedRead = 1;
                     break;
                 case MATROSKA_TRACK_ENCODING_COMP_HEADERSTRIP:
